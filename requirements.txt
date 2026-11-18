@@ -1,0 +1,5 @@
+mlx-whisper>=0.4
+pillow>=11
+numpy>=2
+jieba>=0.42
+huggingface_hub

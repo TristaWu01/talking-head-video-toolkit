@@ -1,0 +1,23 @@
+# Platform sensitive words: removed from the burned-in subtitles (the voice is not changed).
+# Only the word itself is removed; the rest of the sentence still shows.
+# Fill this from your platform's own community guidelines (RedNote, TikTok, Instagram...) and update it
+# as the rules change. The entries below are placeholders.
+# A video can keep a listed word that's fine in context with  keep = ["..."]  under [subtitles] in its video.toml.
+
+hide = [
+  # calls to action that send viewers off-platform
+  "DM me", "link in bio", "message me on",
+  # other platforms' names
+  "OtherPlatformA", "OtherPlatformB",
+  # sales pressure
+  "lowest price ever", "limited time only",
+  # medical and financial claims
+  "cures", "guaranteed returns",
+]
+
+# Words that stay readable but are respelled (applied after the hide list), e.g. a word the platform flags
+# but your audience still needs to understand.
+swap = [
+  ["comments", "c0mments"],
+  ["placeholder", "plac3holder"],
+]

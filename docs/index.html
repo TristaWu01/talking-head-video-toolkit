@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talking-Head Video Toolkit</title>
+<meta name="description" content="A case study in designing an AI-run video editing workflow: written instructions, human checkpoints and a feedback loop that turned every flaw into a rule.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0F1424;
+    --panel: #080B14;
+    --raised: #161D33;
+    --line: #232C47;
+    --text: #FFFFFF;
+    --muted: #AEB8CF;
+    --aqua: #00E6DC;
+    --readout: #71E8E1;
+    --violet: #A898FF;
+    --radius: 14px;
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+    --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+    --pixel: "Silkscreen", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font: 18px/1.6 var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--readout); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--aqua); outline-offset: 3px; border-radius: 6px; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 600px) { .wrap { padding: 0 16px; } body { font-size: 17px; } }
+
+  /* type */
+  h1, h2, h3 { font-family: var(--display); line-height: 1.12; margin: 0; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(2.1rem, 5.4vw, 3.6rem); font-weight: 800; }
+  h2 { font-size: clamp(1.7rem, 3.6vw, 2.5rem); font-weight: 800; margin-bottom: 14px; }
+  h3 { font-size: 1.22rem; font-weight: 600; }
+  .hl { color: var(--violet); }
+  .label {
+    font-family: var(--pixel); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--readout); margin: 0 0 14px;
+  }
+  .label::before { content: "> "; }
+  .lead { font-size: 1.15rem; color: var(--muted); max-width: 46em; margin: 0 0 8px; }
+  p { margin: 0 0 14px; }
+  .muted { color: var(--muted); }
+
+  /* nav */
+  nav { position: sticky; top: 0; z-index: 10; background: rgba(15, 20, 36, 0.94); border-bottom: 1px solid var(--line); }
+  nav .wrap { display: flex; align-items: center; gap: 22px; height: 58px; }
+  nav .brand { font-family: var(--pixel); font-size: 0.85rem; color: var(--text); text-decoration: none; margin-right: auto; white-space: nowrap; }
+  nav .brand span { color: var(--aqua); }
+  nav a.link { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
+  nav a.link:hover { color: var(--text); }
+  @media (max-width: 760px) { nav a.link { display: none; } }
+
+  /* buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 10px;
+    font: 700 1rem var(--body); text-decoration: none; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+  .btn.primary { background: var(--aqua); color: var(--ink); }
+  .btn.secondary { background: var(--raised); color: var(--text); }
+  nav .btn { padding: 8px 14px; font-size: 0.9rem; }
+
+  /* sections */
+  section { padding: 84px 0; border-top: 1px solid var(--line); scroll-margin-top: 58px; }
+  @media (max-width: 600px) { section { padding: 60px 0; } }
+
+  /* hero */
+  .hero { padding: 72px 0 64px; border-top: 0; }
+  .hero-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 48px; align-items: center; }
+  .hero h1 { margin-bottom: 20px; }
+  .hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+  .screen {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 14px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  }
+  .screen .bar { display: flex; gap: 6px; padding: 2px 4px 12px; }
+  .screen .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+  .screen img { border-radius: 10px; width: 100%; height: auto; }
+  .screen .cap { font-family: var(--pixel); font-size: 0.72rem; color: var(--muted); margin: 10px 4px 2px; }
+  @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; } .hero .screen { max-width: 440px; } }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 56px; }
+  .stat { background: var(--raised); border-radius: var(--radius); padding: 18px 20px; }
+  .stat b { display: block; font: 800 2.2rem/1 var(--display); color: var(--aqua); margin-bottom: 8px; }
+  .stat span { color: var(--muted); font-size: 0.95rem; line-height: 1.4; display: block; }
+  @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+  /* role */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0 34px; }
+  .who { border-radius: var(--radius); padding: 22px 24px; background: var(--raised); }
+  .who h3 { margin-bottom: 10px; }
+  .who.me { border: 2px solid var(--aqua); }
+  .who ul { margin: 0; padding-left: 20px; }
+  .who li { margin-bottom: 6px; }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
+  .card { background: var(--raised); border-radius: var(--radius); padding: 20px; }
+  .card .n { font-family: var(--pixel); color: var(--violet); font-size: 0.8rem; display: block; margin-bottom: 10px; }
+  .card h3 { margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 0.97rem; margin: 0; }
+
+  /* workflow */
+  .flow { list-style: none; margin: 34px 0 0; padding: 0; position: relative; }
+  .flow::before { content: ""; position: absolute; left: 21px; top: 8px; bottom: 8px; width: 2px; background: var(--line); }
+  .step { position: relative; padding: 0 0 26px 64px; }
+  .step .dot {
+    position: absolute; left: 0; top: 0; width: 44px; height: 44px; border-radius: 12px; background: var(--raised);
+    display: grid; place-items: center; font-family: var(--pixel); font-size: 0.85rem; color: var(--readout);
+  }
+  .step h3 { padding-top: 9px; margin-bottom: 12px; }
+  .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lane { background: var(--raised); border-radius: 12px; padding: 14px 16px; font-size: 0.97rem; }
+  .lane .who-tag { font-family: var(--pixel); font-size: 0.7rem; display: block; margin-bottom: 6px; color: var(--muted); }
+  .lane.check { background: transparent; border: 2px solid var(--aqua); }
+  .lane.check .who-tag { color: var(--aqua); }
+  @media (max-width: 700px) { .lanes { grid-template-columns: 1fr; } .step { padding-left: 56px; } }
+
+  /* instructions */
+  .rules { display: grid; gap: 14px; margin-top: 30px; }
+  .rule { display: grid; grid-template-columns: 260px 1fr; gap: 0; background: var(--raised); border-radius: var(--radius); overflow: hidden; }
+  .rule .p { padding: 20px 22px; background: var(--panel); }
+  .rule .p h3 { margin-bottom: 6px; }
+  .rule .p p { color: var(--muted); font-size: 0.95rem; margin: 0; }
+  .rule .ex { padding: 20px 22px; display: grid; gap: 10px; align-content: center; }
+  .ex .vague, .ex .mine { font-size: 0.97rem; margin: 0; }
+  .ex .vague { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(174, 184, 207, 0.6); }
+  .ex .mine { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.88rem; color: var(--text); background: var(--panel); border-radius: 8px; padding: 10px 12px; }
+  .ex .mine::before { content: "> "; color: var(--readout); }
+  .ex .vague::before { content: "Instead of: "; display: inline-block; margin-right: 6px; font-family: var(--pixel); font-size: 0.7rem; color: var(--violet); text-decoration: none; }
+  @media (max-width: 760px) { .rule { grid-template-columns: 1fr; } }
+
+  .diagram { display: grid; grid-template-columns: 300px 1fr; gap: 36px; align-items: center; margin-top: 40px; }
+  .diagram svg { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
+  @media (max-width: 760px) { .diagram { grid-template-columns: 1fr; } }
+
+  /* iteration */
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 30px 0 18px; }
+  .tab {
+    font: 400 0.8rem var(--pixel); color: var(--muted); background: var(--raised); border: 0; border-radius: 9px;
+    padding: 10px 14px; cursor: pointer;
+  }
+  .tab[aria-selected="true"] { background: var(--aqua); color: var(--ink); }
+  .panel { background: var(--raised); border-radius: var(--radius); padding: 24px; }
+  .panel[hidden] { display: none; }
+  .no-js .panel { margin-bottom: 14px; }
+  .panel h3 { margin-bottom: 16px; }
+  .loop { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .loop li { display: grid; grid-template-columns: 1fr 34px 1fr; align-items: center; gap: 8px; background: var(--panel); border-radius: 10px; padding: 14px 16px; font-size: 0.97rem; }
+  .loop .fb { color: var(--muted); }
+  .loop .fb::before { content: "Feedback: "; font-weight: 700; color: var(--violet); }
+  .loop .arrow { color: var(--readout); text-align: center; font-family: var(--pixel); }
+  .loop .fix::before { content: "New rule: "; font-weight: 700; color: var(--aqua); }
+  @media (max-width: 700px) { .loop li { grid-template-columns: 1fr; } .loop .arrow { display: none; } }
+
+  /* brand */
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 30px; }
+  .gallery figure { margin: 0; background: var(--panel); border-radius: var(--radius); overflow: hidden; }
+  .gallery img { width: 100%; height: auto; }
+  @media (max-width: 760px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
+  .brand-row { display: grid; grid-template-columns: 300px 1fr; gap: 36px; align-items: center; margin-top: 40px; }
+  .brand-row img.cover { border-radius: var(--radius); border: 1px solid var(--line); width: 100%; max-width: 300px; height: auto; aspect-ratio: 3 / 4; object-fit: cover; margin: 0 auto; }
+  .icons { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; }
+  .icons img { width: 56px; height: 56px; image-rendering: pixelated; background: var(--text); border-radius: 12px; padding: 8px; }
+  @media (max-width: 760px) { .brand-row { grid-template-columns: 1fr; } }
+
+  /* pipeline */
+  .pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 26px 0; }
+  .pipe span { background: var(--raised); border-radius: 9px; padding: 9px 13px; font-size: 0.93rem; }
+  .pipe i { color: var(--readout); font-style: normal; font-family: var(--pixel); font-size: 0.8rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips span { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 0.9rem; color: var(--muted); }
+
+  .next { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 26px; }
+  @media (max-width: 760px) { .next { grid-template-columns: 1fr; } }
+
+  footer { border-top: 1px solid var(--line); padding: 40px 0 56px; color: var(--muted); font-size: 0.95rem; }
+  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; }
+  footer a { color: var(--text); }
+</style>
+</head>
+<body class="no-js">
+<script>document.body.classList.replace("no-js", "js");</script>
+
+<nav aria-label="Page">
+  <div class="wrap">
+    <a class="brand" href="#top">talking-head<span>_</span>toolkit</a>
+    <a class="link" href="#role">My role</a>
+    <a class="link" href="#workflow">Workflow</a>
+    <a class="link" href="#iteration">Iteration</a>
+    <a class="link" href="#brand">Brand</a>
+    <a class="btn secondary" href="https://github.com/TristaWu01/talking-head-video-toolkit">GitHub</a>
+  </div>
+</nav>
+
+<main id="top">
+  <!-- HERO -->
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="label">Case study · AI workflow design</p>
+          <h1>I turned video editing into a workflow <span class="hl">an AI can run</span>, and I stay in charge.</h1>
+          <p class="lead">I make weekly education videos for short-video platforms. I designed the process that edits them: written instructions an AI follows, six checkpoints where I approve the work, and a feedback loop that turns every flaw into a new rule. I also built the brand that every video carries.</p>
+          <div class="ctas">
+            <a class="btn primary" href="https://github.com/TristaWu01/talking-head-video-toolkit">View the code</a>
+            <a class="btn secondary" href="#workflow">See the workflow</a>
+          </div>
+        </div>
+        <figure class="screen">
+          <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <picture>
+            <source srcset="assets/still-four-types.png" media="(prefers-reduced-motion: reduce)">
+            <img src="assets/anim-four-types.gif" width="420" height="397" alt="Animation: four labelled cards appear one by one, and the last is tagged as the rarest.">
+          </picture>
+          <figcaption class="cap">One of 28 explainer animations</figcaption>
+        </figure>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b>7</b><span>videos published with this workflow</span></div>
+        <div class="stat"><b>6</b><span>checkpoints I sign off on for every video</span></div>
+        <div class="stat"><b>52</b><span>rules in the playbook, each traced to a real problem</span></div>
+        <div class="stat"><b>28</b><span>animations drawn in code</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PROBLEM + ROLE -->
+  <section id="role">
+    <div class="wrap">
+      <p class="label">The problem</p>
+      <h2>Editing took hours, and "just ask the AI" wasn't reliable</h2>
+      <p class="lead">A three-minute talking-head video needs retakes cut, subtitles timed, overlays placed around the speaker's face, flagged words removed for the platform, and a cover. Asked loosely, an AI guesses: it trims too much, covers the face, or overwrites the version you liked. The fix was not a better prompt. It was a clear process.</p>
+
+      <div class="split">
+        <div class="who me">
+          <h3>What I did</h3>
+          <ul>
+            <li>Defined the editing workflow, stage by stage</li>
+            <li>Wrote the playbook the AI reads before every edit</li>
+            <li>Set the checkpoints and what I check at each one</li>
+            <li>Reviewed every cut, layout, render and cover</li>
+            <li>Turned each problem into a rule, and many rules into automatic checks</li>
+            <li>Designed the brand and its rules for video</li>
+          </ul>
+        </div>
+        <div class="who">
+          <h3>What the AI did</h3>
+          <ul>
+            <li>Wrote most of the code, with <a href="https://claude.com/claude-code">Claude Code</a> as my pair programmer</li>
+            <li>Runs each stage: transcribing, cutting, subtitling, rendering</li>
+            <li>Prepares each checkpoint as numbered lists and labelled stills</li>
+            <li>Checks its own render before I see it</li>
+            <li>Writes each new rule into the playbook</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card"><span class="n">01</span><h3>Define</h3><p>Seven stages, each with a clear input, output and checkpoint.</p></div>
+        <div class="card"><span class="n">02</span><h3>Instruct</h3><p>Rules with exact numbers and the reason behind each one.</p></div>
+        <div class="card"><span class="n">03</span><h3>Check</h3><p>Nothing moves to the next stage without my approval.</p></div>
+        <div class="card"><span class="n">04</span><h3>Iterate</h3><p>Each video's feedback becomes a rule for the next.</p></div>
+        <div class="card"><span class="n">05</span><h3>Brand</h3><p>One visual identity, applied the same way every time.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKFLOW -->
+  <section id="workflow">
+    <div class="wrap">
+      <p class="label">The workflow</p>
+      <h2>Seven stages, six checkpoints</h2>
+      <p class="lead">Each stage says what the AI does and what I check. Text comes back as numbered lists, so I can reply "keep #3". Images come with their timestamps.</p>
+
+      <ol class="flow">
+        <li class="step">
+          <span class="dot" aria-hidden="true">1</span>
+          <h3>Intake check, before any editing</h3>
+          <div class="lanes">
+            <div class="lane"><span class="who-tag">AI does</span>Checks the footage, script and b-roll, plus free disk space and the audio delay. Flags anything missing, and suggests b-roll for the key moments.</div>
+            <div class="lane check"><span class="who-tag">Checkpoint 1 · I check</span>Fill the gaps and choose the b-roll.</div>
+          </div>
+        </li>
+        <li class="step">
+          <span class="dot" aria-hidden="true">2</span>
+          <h3>Transcribe, then plan the cuts</h3>
+          <div class="lanes">
+            <div class="lane"><span class="who-tag">AI does</span>Compares the transcript with the script. Lists each retake to remove, the expected length, and every flagged word in its sentence.</div>
+            <div class="lane check"><span class="who-tag">Checkpoint 2A · I check</span>Approve or edit the cuts and word changes.</div>
+          </div>
+        </li>
+        <li class="step">
+          <span class="dot" aria-hidden="true">3</span>
+          <h3>Plan the on-screen text and visuals</h3>
+          <div class="lanes">
+            <div class="lane"><span class="who-tag">AI does</span>Proposes the title, viewpoints and the words that trigger them, key words, sound cues, sticker and photo moments, and the cover text.</div>
+            <div class="lane check"><span class="who-tag">Checkpoint 2B · I check</span>Approve or edit the plan.</div>
+          </div>
+        </li>
+        <li class="step">
+          <span class="dot" aria-hidden="true">4</span>
+          <h3>Key frames before the full render</h3>
+          <div class="lanes">
+            <div class="lane"><span class="who-tag">AI does</span>Measures where my head sits in the frame, then renders stills of every layout moment on the real footage. Flags anything close to my face.</div>
+            <div class="lane check"><span class="who-tag">Checkpoint 3 · I check</span>Approve the layout. Rendering stills first saves full re-renders.</div>
+          </div>
+        </li>
+        <li class="step">
+          <span class="dot" aria-hidden="true">5</span>
+          <h3>Render, then the AI checks its own work</h3>
+          <div class="lanes">
+            <div class="lane"><span class="who-tag">AI does</span>Renders the video, then checks picture and sound sync, re-transcribes to catch clipped endings, measures loudness, and confirms no flagged words remain. Sends a short report.</div>
+            <div class="lane check"><span class="who-tag">Checkpoint 4 · I check</span>Watch it and give feedback. Each change is a new version: v2, v3…</div>
+          </div>
+        </li>
+        <li class="step">
+          <span class="dot" aria-hidden="true">6</span>
+          <h3>Cover</h3>
+          <div class="lanes">
+            <div class="lane"><span class="who-tag">AI does</span>Asks me for the frame or photo first, then designs the cover and checks its words.</div>
+            <div class="lane check"><span class="who-tag">Checkpoint 5 · I check</span>Approve the cover.</div>
+          </div>
+        </li>
+        <li class="step">
+          <span class="dot" aria-hidden="true">7</span>
+          <h3>Wrap-up</h3>
+          <div class="lanes">
+            <div class="lane"><span class="who-tag">AI does</span>Writes anything new it learned into the playbook. With my OK, deletes the raw footage and large working files.</div>
+            <div class="lane check"><span class="who-tag">I check</span>Confirm the clean-up. The next video starts with a better playbook.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- INSTRUCTIONS -->
+  <section id="instructions">
+    <div class="wrap">
+      <p class="label">Writing for an AI</p>
+      <h2>Instructions an AI can actually follow</h2>
+      <p class="lead">The playbook is the heart of the project. These are the principles I used to write it.</p>
+
+      <div class="rules">
+        <div class="rule">
+          <div class="p"><h3>Numbers, not adjectives</h3><p>"Tighter" means something different every time. A number means the same thing on every video.</p></div>
+          <div class="ex"><p class="vague">Make the pace tighter.</p><p class="mine">About 0.15 s between phrases. No silence over 0.3 s.</p></div>
+        </div>
+        <div class="rule">
+          <div class="p"><h3>Every rule says why</h3><p>With the reason, the AI can handle a case the rule didn't name.</p></div>
+          <div class="ex"><p class="vague">Don't cut too close to words.</p><p class="mine">Each cut runs on up to 0.3 s until the voice fades. (Video 1: sentence endings were clipped.)</p></div>
+        </div>
+        <div class="rule">
+          <div class="p"><h3>Hard lines, never broken</h3><p>A few rules protect what matters most, and the code enforces them.</p></div>
+          <div class="ex"><p class="vague">Try not to cover the speaker.</p><p class="mine">Everything at the top stays above the measured top of the head. Never overwrite a finished render.</p></div>
+        </div>
+        <div class="rule">
+          <div class="p"><h3>Easy to review</h3><p>A checkpoint only works if checking is quick.</p></div>
+          <div class="ex"><p class="vague">Here's what I changed.</p><p class="mine">Numbered lists, so a reply can be "keep #3". Stills labelled with their timestamps.</p></div>
+        </div>
+        <div class="rule">
+          <div class="p"><h3>Rules become checks</h3><p>A rule that matters is backed by a warning in the code, so it can't be forgotten.</p></div>
+          <div class="ex"><p class="vague">Keep animations readable.</p><p class="mine">pace_check() warns when labels run long, elements come less than 0.8 s apart, or anything is still moving 2.5 s before the end.</p></div>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <svg viewBox="0 0 270 480" role="img" aria-labelledby="dg-title dg-desc">
+          <title id="dg-title">Layout rule: the speaker's face is never covered</title>
+          <desc id="dg-desc">A vertical video frame. The title and viewpoints sit in a band above the measured head line. The face area in the middle stays clear. Stickers sit at shoulder height and subtitles sit near the bottom.</desc>
+          <rect x="1" y="1" width="268" height="478" rx="18" fill="#080B14" stroke="#232C47" stroke-width="2"/>
+          <rect x="1" y="44" width="92" height="44" rx="0" fill="#161D33"/>
+          <rect x="1" y="44" width="5" height="44" fill="#71E8E1"/>
+          <text x="14" y="70" fill="#FFFFFF" font-family="Atkinson Hyperlegible, sans-serif" font-size="12">Title</text>
+          <rect x="104" y="46" width="70" height="18" rx="5" fill="none" stroke="#71E8E1"/>
+          <text x="111" y="59" fill="#71E8E1" font-family="Silkscreen, monospace" font-size="8">01 point</text>
+          <rect x="104" y="70" width="70" height="18" rx="5" fill="none" stroke="#71E8E1"/>
+          <text x="111" y="83" fill="#71E8E1" font-family="Silkscreen, monospace" font-size="8">02 point</text>
+          <line x1="10" y1="112" x2="260" y2="112" stroke="#00E6DC" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <text x="148" y="106" fill="#00E6DC" font-family="Silkscreen, monospace" font-size="8">head line</text>
+          <ellipse cx="135" cy="178" rx="48" ry="60" fill="#161D33"/>
+          <path d="M55 330 Q135 230 215 330 L215 400 L55 400 Z" fill="#161D33"/>
+          <text x="135" y="182" fill="#AEB8CF" font-family="Atkinson Hyperlegible, sans-serif" font-size="12" text-anchor="middle">face stays clear</text>
+          <rect x="18" y="270" width="34" height="34" rx="6" fill="none" stroke="#A898FF" stroke-dasharray="3 3"/>
+          <rect x="218" y="270" width="34" height="34" rx="6" fill="none" stroke="#A898FF" stroke-dasharray="3 3"/>
+          <text x="135" y="290" fill="#A898FF" font-family="Silkscreen, monospace" font-size="8" text-anchor="middle">stickers at shoulders</text>
+          <rect x="18" y="404" width="234" height="44" rx="8" fill="#0F1424" stroke="#232C47"/>
+          <text x="30" y="431" fill="#FFFFFF" font-family="Atkinson Hyperlegible, sans-serif" font-size="12">Subtitles</text>
+        </svg>
+        <div>
+          <h3 style="margin-bottom:10px">Example: the face rule</h3>
+          <p class="muted">The first rule I made unbreakable. For each video the AI measures where the top of my head sits in the footage. Everything at the top of the screen stays above that line. Stickers sit at shoulder height, and the subtitles sit below the chin. Key frames at Checkpoint 3 confirm it before anything is rendered.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ITERATION -->
+  <section id="iteration">
+    <div class="wrap">
+      <p class="label">Iteration</p>
+      <h2>Every flaw became a rule</h2>
+      <p class="lead">After each video I reviewed the result and gave feedback. Each fix went into the playbook, so the same problem never came back. Pick a video to see what changed.</p>
+
+      <div class="tabs" role="tablist" aria-label="Videos">
+        <button class="tab" role="tab" id="t1" aria-controls="p1" aria-selected="true">Video 1</button>
+        <button class="tab" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1">Video 2</button>
+        <button class="tab" role="tab" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1">Video 3</button>
+        <button class="tab" role="tab" id="t4" aria-controls="p4" aria-selected="false" tabindex="-1">Video 4</button>
+        <button class="tab" role="tab" id="t5" aria-controls="p5" aria-selected="false" tabindex="-1">Video 5</button>
+        <button class="tab" role="tab" id="t6" aria-controls="p6" aria-selected="false" tabindex="-1">Video 6</button>
+        <button class="tab" role="tab" id="t7" aria-controls="p7" aria-selected="false" tabindex="-1">Video 7</button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p1" aria-labelledby="t1">
+        <h3>Video 1: getting the basics right</h3>
+        <ul class="loop">
+          <li><span class="fb">The pace felt slow.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">About 0.15 s between phrases; no silence over 0.3 s.</span></li>
+          <li><span class="fb">Sentence endings were clipped.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Cuts run on until the voice fades.</span></li>
+          <li><span class="fb">The picture was 0.6 s behind the sound.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Measure the audio delay on every video, then check that picture and sound match to within one frame.</span></li>
+          <li><span class="fb">The music was too quiet.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Music sits 15 dB under the voice and dips further while I talk.</span></li>
+          <li><span class="fb">A name was split across two subtitle lines.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Names and key phrases never split.</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p2" aria-labelledby="t2">
+        <h3>Video 2: protecting the work</h3>
+        <ul class="loop">
+          <li><span class="fb">I want to compare versions.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Never overwrite a render or cover. Every change is v2, v3…, and the code refuses to overwrite.</span></li>
+          <li><span class="fb">Photos should feel big and clear.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Photos and clips fill the screen; landscape ones sit whole on a blurred copy of themselves.</span></li>
+          <li><span class="fb">The title should be easier to read.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">A larger title tab that stays up for the whole video.</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p3" aria-labelledby="t3">
+        <h3>Video 3: richer visuals</h3>
+        <ul class="loop">
+          <li><span class="fb">Some ideas needed a diagram, not a photo.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Brand animations drawn in code, timed to the line they cover.</span></li>
+          <li><span class="fb">Screenshots of articles were cropped.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Documents can be set to show whole.</span></li>
+          <li><span class="fb">I want to pick the exact cover frame.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">I send a screenshot, and the AI matches it to the exact frame.</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p4" aria-labelledby="t4">
+        <h3>Video 4: precision</h3>
+        <ul class="loop">
+          <li><span class="fb">The viewpoint chips were hard to read.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Chips 40% bigger, placed right beside the title.</span></li>
+          <li><span class="fb">A word silently went missing.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Cut 0.02 s before a word, never exactly on it. Whisper's timings round, and an exact cut dropped the word.</span></li>
+          <li><span class="fb">A stray syllable survived at a join.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Exact audio cuts placed in the quiet dip, checked by re-transcribing.</span></li>
+          <li><span class="fb">Dense characters in the cover headline filled in.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">A thinner outline and more spacing, so dense characters stay open.</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p5" aria-labelledby="t5">
+        <h3>Video 5: less clutter, more automation</h3>
+        <ul class="loop">
+          <li><span class="fb">The screen felt crowded.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">One thing at a time: chips and the bio card hide while any b-roll is up.</span></li>
+          <li><span class="fb">The animations felt rushed.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Short labels, elements at least 0.8 s apart, a still ending, all checked automatically by pace_check().</span></li>
+          <li><span class="fb">Words vanished at a retake.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">A repair step re-transcribes just those stretches and splices the words back in.</span></li>
+          <li><span class="fb">Some flagged words needed to stay readable.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">Words that must stay readable are respelled instead of removed.</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p6" aria-labelledby="t6">
+        <h3>Video 6: hierarchy and timing</h3>
+        <ul class="loop">
+          <li><span class="fb">The title and the chips competed for attention.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">The title always reads bigger than the chips; the build warns if it doesn't.</span></li>
+          <li><span class="fb">The bio card should come in when I introduce myself.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">It appears when I introduce myself, as long as no b-roll is up.</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p7" aria-labelledby="t7">
+        <h3>Video 7: fine-tuning</h3>
+        <ul class="loop">
+          <li><span class="fb">A finished sentence merged with the next topic.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">After a long pause, a sentence never joins the next subtitle line.</span></li>
+          <li><span class="fb">When I ask viewers to comment a keyword, it should stand out.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">The keyword shows as a pop-up under the title.</span></li>
+          <li><span class="fb">The cover's bottom lines felt tight.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">More space between the lines, adjustable per video.</span></li>
+          <li><span class="fb">One cover design is enough for now.</span><span class="arrow" aria-hidden="true">→</span><span class="fix">One design per video; the second is paused but kept in the playbook.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRAND -->
+  <section id="brand">
+    <div class="wrap">
+      <p class="label">Brand</p>
+      <h2>I built the brand, then taught it to the AI</h2>
+      <p class="lead">I designed the visual identity and wrote its rules for video. The AI applies it to subtitles, overlays, covers and every animation, so each video looks like part of one series.</p>
+
+      <div class="gallery">
+        <figure><picture><source srcset="assets/still-perception-gap.png" media="(prefers-reduced-motion: reduce)"><img src="assets/anim-perception-gap.gif" width="420" height="397" loading="lazy" alt="Animation: two bars compare what kids say with what parents think, and the gap between them is marked."></picture></figure>
+        <figure><picture><source srcset="assets/still-ask-better.png" media="(prefers-reduced-motion: reduce)"><img src="assets/anim-ask-better.gif" width="420" height="397" loading="lazy" alt="Animation: a dull question gets a flat answer and is crossed out, then a better question replaces it."></picture></figure>
+        <figure><picture><source srcset="assets/still-yes-man.png" media="(prefers-reduced-motion: reduce)"><img src="assets/anim-yes-man.gif" width="420" height="397" loading="lazy" alt="Animation: a chat where the AI agrees, then agrees even more loudly."></picture></figure>
+        <figure><picture><source srcset="assets/still-frontier.png" media="(prefers-reduced-motion: reduce)"><img src="assets/anim-frontier.gif" width="420" height="397" loading="lazy" alt="Animation: a chart where an AI curve rises past a human line."></picture></figure>
+        <figure><picture><source srcset="assets/still-three-groups.png" media="(prefers-reduced-motion: reduce)"><img src="assets/anim-three-groups.gif" width="420" height="397" loading="lazy" alt="Animation: three cards appear for three study groups, each with a pixel icon."></picture></figure>
+        <figure><picture><source srcset="assets/still-four-types.png" media="(prefers-reduced-motion: reduce)"><img src="assets/anim-four-types.gif" width="420" height="397" loading="lazy" alt="Animation: four learner types appear as cards, and one is tagged as the rarest."></picture></figure>
+      </div>
+
+      <div class="brand-row">
+        <img class="cover" src="assets/cover-demo.png" width="540" height="720" loading="lazy" alt="A sample cover: a short tag, a large headline with one highlighted word, a pixel figure in the middle and two short lines at the bottom.">
+        <div>
+          <h3 style="margin-bottom:10px">Covers and icons, made the same way</h3>
+          <p class="muted">Covers are generated from a few lines of text in the video's config, with the face kept clear in the middle. A set of pixel-art icons gives the videos their own stickers, drawn in code on a fixed grid so new ones always match.</p>
+          <div class="icons">
+            <img src="assets/icons/pixel-idea.svg" alt="Pixel icon: light bulb">
+            <img src="assets/icons/pixel-robot.svg" alt="Pixel icon: robot">
+            <img src="assets/icons/pixel-question.svg" alt="Pixel icon: question mark">
+            <img src="assets/icons/pixel-growth.svg" alt="Pixel icon: growth chart">
+            <img src="assets/icons/pixel-star.svg" alt="Pixel icon: star">
+            <img src="assets/icons/pixel-heart.svg" alt="Pixel icon: heart">
+            <img src="assets/icons/pixel-code.svg" alt="Pixel icon: code">
+            <img src="assets/icons/pixel-school.svg" alt="Pixel icon: school">
+          </div>
+          <p class="muted" style="margin-top:14px;font-size:0.92rem">The open-source code ships with a neutral theme. Anyone can set their own colours and fonts in one file.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="tech">
+    <div class="wrap">
+      <p class="label">Under the hood</p>
+      <h2>How it works</h2>
+      <p class="lead">Each stage is a small Python script that reads one config file per video.</p>
+      <div class="pipe" aria-label="Pipeline">
+        <span>Transcribe</span><i>›</i><span>Repair retakes</span><i>›</i><span>Cut &amp; speed up</span><i>›</i><span>Clean audio</span><i>›</i><span>Subtitles &amp; overlays</span><i>›</i><span>Key frames</span><i>›</i><span>Render</span><i>›</i><span>Cover</span>
+      </div>
+      <div class="chips">
+        <span>Python</span><span>ffmpeg + libass</span><span>MLX Whisper</span><span>RNNoise</span><span>jieba</span><span>Pillow</span><span>TOML config</span><span>Claude Code</span>
+      </div>
+
+      <div class="next">
+        <div class="card"><h3>What worked</h3><p>Writing the process down before automating it. Once each stage had an input, an output and a checkpoint, the AI's work became predictable, and my reviews became quick.</p></div>
+        <div class="card"><h3>What's next</h3><p>Run the English pipeline end to end on real footage, and turn more playbook rules into automatic checks.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Designed and directed by Trista Chuying Wu. Code written with Claude Code.</span>
+    <span><a href="https://github.com/TristaWu01/talking-head-video-toolkit">Source on GitHub</a> · MIT licence</span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+    function select(tab, focus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute("aria-selected", on);
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+    select(tabs[0]);
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener("click", function () { select(tab); });
+      tab.addEventListener("keydown", function (e) {
+        var k = e.key, j = null;
+        if (k === "ArrowRight") j = (i + 1) % tabs.length;
+        if (k === "ArrowLeft") j = (i - 1 + tabs.length) % tabs.length;
+        if (k === "Home") j = 0;
+        if (k === "End") j = tabs.length - 1;
+        if (j !== null) { e.preventDefault(); select(tabs[j], true); }
+      });
+    });
+  })();
+</script>
+</body>
+</html>

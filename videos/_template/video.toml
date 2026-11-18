@@ -1,0 +1,78 @@
+# Settings for one video. Fill this in after transcribing; every field is explained in docs/CONFIG.md.
+# Text markup: [words] = key word in the highlight colour, {words} = big number in the accent colour (covers).
+# Colours and fonts are set once in library/brand/theme.toml.
+# "at" = the words you say when something should appear; "after" = only look after this
+# many seconds of the raw footage (use it when the words come up more than once).
+# Files: looked up in this video's folder first, then in library/ (e.g. "stickers/pixel-robot.svg").
+
+title = ""                 # export file name
+language = "zh"            # language pack in library/language/ ("zh" tested; "en" for English videos)
+speed = 1.2                # playback speed (1.2 usual; 1.25 for a tighter video)
+chip_scale = 1.6           # viewpoint chip size
+title_scale = 1.4          # top title size; always bigger than the chips, and shrinks itself to fit
+chips_x = "beside_title"   # chips start just right of the title tab
+photo_style = "fullscreen" # photos and clips fill the screen
+head_top = 470             # y of the top of the speaker's head in the footage (measure it from key frames)
+bio_top = 1120             # y just below the chin, where the bio card starts in "chin" position
+# [bio]                    # change or switch off the bio card (default: library/brand/profile.toml)
+# enabled = false
+# at = "I'm Your Name"     # start the card on these words
+
+[transcribe]
+terms = ""                 # names and terms Whisper should spell right, e.g. "Your Name, NVIDIA"
+# fix = []                 # stretches to re-transcribe after false starts: [[start, end], ...] (fix_transcript.py)
+
+[cut]
+remove = []                # repeated takes: [[start, end], ...] in seconds of the raw footage
+# exact = []               # exact audio to cut where Whisper timed a retake badly
+
+[subtitles]
+replace = []               # Whisper mishearings: [["wrong", "right"], ...]
+keywords = []              # shown in the highlight colour and bigger
+dings = []                 # a ding sound when these appear
+# whole = []               # names and phrases a subtitle line must never split
+# swap = []                # extra respelled words for this video: [["word", "respelled"], ...]
+# keep = []                # sensitive words that are fine in this video's context
+
+[top_title]                # bookmark tab at the top left, up for the whole video
+text = ""                  # e.g. "What should kids [learn] now?"
+# label = ""               # optional small line above it, e.g. "DINNER TABLE TALK"
+
+# [[points]]               # each viewpoint: a chip down the right side, added when it's said; repeat for each
+# text = "What to learn [matters less]"
+# at = "first"
+
+# [[popups]]               # a short pop-up under the title, e.g. a comment keyword
+# label = "Comment"
+# text = "[keyword]"
+# at = "keyword"
+
+# [[photos]]               # full-screen photo, clip or animation
+# file = "broll/photo.png"
+# caption = "Person's name"
+# caption_en = "THEIR ROLE"
+# at = "words when it starts"
+# until = "words when it ends"
+
+# [[stickers]]             # slide in from the side at shoulder height
+# file = "stickers/pixel-robot.svg"
+# width = 240
+# at = "AI"
+# side = "left"
+# seconds = 2.6
+
+[end_card]
+tagline = ""               # optional line under your handle on the end card
+
+[cover]
+photo = ""                 # a 3:4 photo (or leave out and set  frame = <seconds into the edit>)
+photo_head_top = 390       # top of your head in the photo, at cover size (1080x1440)
+face_x = 540               # centre of your face, left to right
+tag = ""                   # small outlined tag at the top
+headline = ""              # e.g. "Raise a [curious] kid"; "|" breaks it onto two lines
+headline_bold = 0
+headline_stroke = 6
+headline_track = 6
+line1 = ""                 # e.g. "{3} questions to ask"
+line2 = ""                 # e.g. "Build [AI-era] skills"
+# line_spacing = 1.45      # space between the two bottom lines

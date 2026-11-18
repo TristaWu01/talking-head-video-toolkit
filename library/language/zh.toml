@@ -1,0 +1,9 @@
+# Language pack: Mandarin (the language the toolkit was built and tested on).
+# These are language rules the code needs to process Mandarin audio, not content.
+whisper_language = "zh"
+whisper_prompt = "以下是普通话的句子，使用简体中文。"   # asks Whisper for Simplified Chinese with punctuation
+fillers = ["嗯", "呃", "啊", "额"]                       # hesitation sounds, cut from the audio
+no_line_start = "的了着过吗呢吧啊得地"                   # particles a subtitle line must never start with
+whole_words = ["AI时代"]                                 # words the segmenter must never split
+phantom = ["谢谢大家", "谢谢观看", "感谢观看", "谢谢收看", "字幕由Amara.org社区提供"]  # Whisper hallucinations on silence
+end_buttons = ["点赞", "收藏", "关注"]                   # like / save / follow on the end card

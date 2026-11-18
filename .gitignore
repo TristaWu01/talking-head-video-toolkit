@@ -1,0 +1,42 @@
+# Python environment, caches and build output
+toolkit/venv/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# downloaded models
+toolkit/models/
+
+# secrets and local settings
+.env
+.env.*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# fonts, music and sound effects: you add your own, and their licences may not allow sharing
+toolkit/fonts/*
+!toolkit/fonts/README.md
+library/music/*
+!library/music/README.md
+library/sound_effects/*
+!library/sound_effects/README.md
+
+# each video's footage and working files (keep only the template)
+videos/*
+!videos/_template/
+**/work/
+**/exports/
+**/footage/*
+!**/footage/.gitkeep
+
+# animations rendered by the demo commands
+**/broll/anim_*.mp4

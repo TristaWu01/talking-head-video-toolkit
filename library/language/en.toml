@@ -1,0 +1,9 @@
+# Language pack: English (for TikTok, Instagram Reels, YouTube Shorts). Set  language = "en"  in video.toml.
+# Not yet tested end to end on English footage; the Mandarin pack (zh.toml) is the tested path.
+whisper_language = "en"
+whisper_prompt = "Hello, welcome back. Today we're talking about this, with punctuation."  # nudges Whisper to punctuate
+fillers = ["um", "uh", "erm", "hmm"]
+no_line_start = ""
+whole_words = []
+phantom = ["Thank you for watching.", "Thanks for watching!", "Please subscribe."]
+end_buttons = ["Like", "Save", "Follow"]

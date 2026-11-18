@@ -1,0 +1,20 @@
+# Your visual style: every colour and font the toolkit draws with.
+# The values below are a plain, neutral starting point. Change them to your own.
+
+[colours]
+text      = "#FFFFFF"  # main text
+accent    = "#8AB4F8"  # labels, numbers, the "> " prompt and the typing cursor
+highlight = "#FFD54F"  # key words in subtitles and covers, and the main end-card button
+fill      = "#E8EAED"  # viewpoint chip fill and photo card border
+muted     = "#B0B3B8"  # secondary text in animations
+ink       = "#121212"  # dark text, outlines and the animation background
+panel     = "#1C1C1E"  # dark panels behind text
+raised    = "#2C2C2E"  # raised surfaces on panels
+line      = "#2A2A2C"  # background grid and quiet details
+
+# Put the font files in toolkit/fonts/. `name` is the font's family name (libass uses it to find the font);
+# `file` is the file name. The main font must cover your subtitle language. For Chinese, use a CJK font
+# such as Noto Sans SC (free from Google Fonts), which covers Latin letters too.
+[fonts]
+main  = { name = "Noto Sans SC", file = "NotoSansSC-Bold.ttf" }  # subtitles, headings, covers
+latin = { name = "Noto Sans SC", file = "NotoSansSC-Bold.ttf" }  # Latin-letter labels and numbers

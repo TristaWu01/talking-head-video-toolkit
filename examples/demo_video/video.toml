@@ -1,0 +1,16 @@
+# Demo settings: just enough to render a sample cover with no footage.
+# Run:  python -I toolkit/scripts/cover.py examples/demo_video v1
+title = "Demo"
+language = "en"
+
+[cover]
+photo = "broll/placeholder_photo.png"   # a placeholder figure instead of a real photo
+photo_head_top = 430
+face_x = 540
+tag = "For parents"
+headline = "Raise a [curious] kid"
+headline_bold = 0
+headline_stroke = 6
+headline_track = 2
+line1 = "{3} questions to ask"
+line2 = "Build [AI-era] skills"

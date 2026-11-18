@@ -1,0 +1,12 @@
+# Your profile: the handle on the end card and the bio card at the start of every video.
+# Replace the placeholders with your own. A video can change the bio card under [bio] in its video.toml.
+handle = "your_handle"
+whole_words = ["Your Name"]        # your name or brand, never split across subtitle lines
+
+[bio]
+name = "Your Name"
+lines = ["Credential one", "What you're known for", "Credential two"]
+seconds = 15                       # how long it stays up
+position = "top-right"             # "top-right": beside the title; "chin": right side below your chin
+intro = ["I'm Your Name", "my name is Your Name"]   # the card starts when you say one of these (if no b-roll is up)
+min_seconds = 4                    # warn if b-roll leaves it less than this
